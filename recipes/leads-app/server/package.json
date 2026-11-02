@@ -1,0 +1,17 @@
+{
+  "name": "@hello-app/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hello-app/shared": "*",
+    "@types/node": "^26.6.5",
+    "@vectoragents/vs-apps": "0.2.4",
+    "jose": "^5.10.0",
+    "tsx": "^4.23.15"
+  }
+}

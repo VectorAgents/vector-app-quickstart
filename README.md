@@ -18,3 +18,7 @@ npm install
 `npm run dev:space` starts the app against a real Space. Copy `.env.example` to `.env` and fill in the values first. This mode turns the harness routes off.
 
 `npm run typecheck` checks all workspaces.
+
+## Recipe start folders
+
+`recipes/leads-app/` is a copy of this starter with an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. The docs recipes start from it. It is its own project: run `npm install`, `npm run dev` and `npm run typecheck` inside it. Its SDK pin follows the root pin.
