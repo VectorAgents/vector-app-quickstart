@@ -11,7 +11,7 @@
     "@hello-app/shared": "*",
     "@types/node": "^26.6.5",
     "@vectoragents/vs-apps": "0.2.4",
-    "jose": "^5.10.0",
+    "jose": "^6.2.14",
     "tsx": "^4.23.15"
   }
 }
