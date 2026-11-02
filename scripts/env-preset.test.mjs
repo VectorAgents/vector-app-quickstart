@@ -40,6 +40,16 @@ test('space mode never leaves the dev issuer on', () => {
   assert.equal('VA_DEV_ISSUER' in env, false);
 });
 
+test('harness mode ignores SPACE_API_URL from the shell', () => {
+  const env = presetEnv('harness', { SPACE_API_URL: 'https://space-api.example.com/api' });
+  assert.equal(env.SPACE_API_URL, undefined);
+});
+
+test('space mode passes SPACE_API_URL through', () => {
+  const env = presetEnv('space', { SPACE_API_URL: 'https://space-api.example.com/api' });
+  assert.equal(env.SPACE_API_URL, 'https://space-api.example.com/api');
+});
+
 test('an unknown mode is refused', () => {
   assert.throws(() => presetEnv('prod', {}), /harness|space/);
 });

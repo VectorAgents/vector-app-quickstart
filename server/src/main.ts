@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { CAPABILITY } from '@hello-app/shared';
-import { AppAuthError } from '@vectoragents/vs-apps/server';
+import { AppAuthError, pingSpaceManifests } from '@vectoragents/vs-apps/server';
 import { requireCapability, requireProvisioning } from './auth';
 import { DEV_JWKS_PATH, devIssuer, handleDevRoute } from './dev-routes';
 import { manifests } from './manifests';
@@ -11,6 +11,7 @@ const routes: Record<string, Route> = {
   '/api/client-config': async () => ({
     allowedParentOrigin: process.env.ALLOWED_PARENT_ORIGIN,
     spaceJwksUrl: devIssuer ? DEV_JWKS_PATH : process.env.SPACE_JWKS_URL,
+    spaceApiUrl: process.env.SPACE_API_URL,
   }),
   '/api/manifest/hello-app': async (req) => {
     await requireProvisioning(req);
@@ -47,3 +48,9 @@ createServer(async (req, res) => {
     send(res, 500, { error: 'Server error' });
   }
 }).listen(Number(process.env.SERVER_PORT));
+
+if (process.env.SPACE_API_URL) {
+  // The ping takes the Space origin; client-config consumers take the origin plus /api.
+  const spaceBaseUrl = process.env.SPACE_API_URL.replace(/\/api\/?$/, '');
+  void pingSpaceManifests({ spaceBaseUrl, manifests });
+}
