@@ -50,7 +50,7 @@ createServer(async (req, res) => {
 }).listen(Number(process.env.SERVER_PORT));
 
 if (process.env.SPACE_API_URL) {
-  // The ping takes the Space origin; the client directory takes the origin plus /api.
+  // The ping takes the Space origin; client-config consumers take the origin plus /api.
   const spaceBaseUrl = process.env.SPACE_API_URL.replace(/\/api\/?$/, '');
   void pingSpaceManifests({ spaceBaseUrl, manifests });
 }

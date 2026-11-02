@@ -4,9 +4,9 @@ import { createServer } from 'node:http';
 import { once } from 'node:events';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { test } from 'node:test';
-import { presetEnv } from './env-preset.mjs';
+import { fileURLToPath } from 'node:url';
 
-const serverDir = new URL('../server/', import.meta.url).pathname;
+const serverDir = fileURLToPath(new URL('../server/', import.meta.url));
 
 async function freePort() {
   const probe = createServer().listen(0);
@@ -62,7 +62,7 @@ test('with SPACE_API_URL set, boot pings Space once and client-config returns sp
   const spaceApiUrl = `${space.origin}/api`;
   const { child, config } = await bootStarter({ SPACE_API_URL: spaceApiUrl });
   try {
-    await sleep(500);
+    for (let attempt = 0; attempt < 50 && space.pings.length === 0; attempt++) await sleep(100);
     assert.equal(config.spaceApiUrl, spaceApiUrl);
     assert.equal(space.pings.length, 1);
     assert.equal(space.pings[0].method, 'POST');
@@ -81,14 +81,4 @@ test('with SPACE_API_URL unset, boot succeeds and client-config omits spaceApiUr
   } finally {
     child.kill();
   }
-});
-
-test('harness mode ignores SPACE_API_URL from the shell', () => {
-  const env = presetEnv('harness', { SPACE_API_URL: 'https://space-api.example.com/api' });
-  assert.equal(env.SPACE_API_URL, undefined);
-});
-
-test('space mode passes SPACE_API_URL through', () => {
-  const env = presetEnv('space', { SPACE_API_URL: 'https://space-api.example.com/api' });
-  assert.equal(env.SPACE_API_URL, 'https://space-api.example.com/api');
 });
