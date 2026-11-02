@@ -17,6 +17,7 @@ export function presetEnv(mode, base) {
   const env = { ...base };
   if (mode === 'harness') {
     delete env.SPACE_JWKS_URL;
+    delete env.SPACE_API_URL;
     return Object.assign(env, HARNESS);
   }
   if (mode === 'space') {
