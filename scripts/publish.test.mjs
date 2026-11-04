@@ -33,3 +33,35 @@ test('the workflow publishes on release with the job token', () => {
   assert.match(workflow, /NODE_AUTH_TOKEN:\s*\$\{\{\s*secrets\.GITHUB_TOKEN\s*\}\}/);
   assert.match(workflow, /run:\s*npm publish\b/);
 });
+
+test('the workflow skips prereleases, checks the tag against the version, and runs both test suites first', () => {
+  assert.match(workflow, /^\s+if:\s*\$\{\{\s*!github\.event\.release\.prerelease\s*\}\}/m);
+  const steps = workflow.split(/^\s+- /m);
+  const at = (pattern) => steps.findIndex((step) => pattern.test(step));
+  const tag = at(/github\.event\.release\.tag_name/);
+  const packageTests = at(/run:\s*npm test\b/);
+  const rootTests = at(/run:\s*node --test scripts\/\*\.test\.mjs/);
+  const publish = at(/run:\s*npm publish\b/);
+  assert.ok(tag > 0 && tag < packageTests && packageTests < publish && rootTests > 0 && rootTests < publish);
+  assert.match(steps[tag], /\$\{TAG#v\}/);
+});
+
+test('CI scopes the packages token to the scaffold step and skips the pair job on fork pull requests', () => {
+  const ci = readFileSync(`${root}/.github/workflows/ci.yml`, 'utf8');
+  const [, pairJob] = ci.split(/^  pair:\n/m);
+  assert.match(pairJob, /^    if:.*head\.repo\.full_name == github\.repository/m);
+  assert.doesNotMatch(pairJob, /^    env:/m);
+  const scaffold = pairJob.split(/^      - /m).find((step) => step.includes('create-app.mjs'));
+  assert.match(scaffold, /GITHUB_PACKAGES_TOKEN:\s*\$\{\{\s*secrets\.PACKAGES_TOKEN\s*\}\}/);
+  assert.equal(pairJob.match(/GITHUB_PACKAGES_TOKEN/g).length, 1);
+});
+
+test('dependabot watches every template package directory and no recipes', () => {
+  const dependabot = readFileSync(`${root}/.github/dependabot.yml`, 'utf8');
+  const listed = [...dependabot.matchAll(/^\s+- (\/\S+)$/gm)].map((match) => match[1]);
+  const packages = execFileSync('git', ['ls-files', 'templates/**/package.json', 'packages/*/package.json'], { cwd: root, encoding: 'utf8' })
+    .split('\n')
+    .filter(Boolean)
+    .map((file) => `/${file.replace(/\/package\.json$/, '')}`);
+  assert.deepEqual([...listed].sort(), [...packages].sort());
+});

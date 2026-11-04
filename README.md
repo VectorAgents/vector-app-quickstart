@@ -27,7 +27,7 @@ node packages/create-app/bin/create-app.mjs hello-app --client react --server no
 | --- | --- |
 | `--client`, `--server` | A flavour name. Without a terminal, a missing flag is an error that lists the valid flavours |
 | `--start` | `hello` (default) or the name of a folder in `overlays/` |
-| `--starter <path>` | A local starter checkout. Without it, the CLI downloads the templates |
+| `--starter <path>` | A local starter checkout. Without it, the CLI downloads the templates. Cannot be combined with `--ref` |
 | `--ref <ref>` | The git ref to download. Default `main` |
 | `--no-install` | Skip `npm install` |
 

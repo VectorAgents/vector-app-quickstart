@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { run } from '../src/cli.mjs';
@@ -124,4 +124,72 @@ test('an unknown --start lists the valid starts', async () => {
   assert.match(err(), /Unknown start "nope"/);
   assert.match(err(), /hello/);
   assert.match(err(), /leads-app/);
+});
+
+test('a failed scaffold leaves nothing behind, so the same command can run again', async () => {
+  const broken = { ...standardTemplates(), base: { client: 'a file where client/ should go' } };
+  const starter = makeStarter({ templates: broken });
+  const parent = tmp();
+  const dir = join(parent, 'my-app');
+  const args = [dir, '--starter', starter, '--client', 'react', '--server', 'node', '--no-install'];
+  const first = makeIo();
+  assert.equal(await run(args, first.io), 1);
+  assert.deepEqual(readdirSync(parent), []);
+
+  const fixed = makeStarter({ templates: standardTemplates() });
+  assert.equal(await run([dir, '--starter', fixed, ...args.slice(3)], makeIo().io), 0);
+});
+
+test('a failed scaffold keeps an empty target directory the reader created', async () => {
+  const broken = { ...standardTemplates(), base: { client: 'a file where client/ should go' } };
+  const starter = makeStarter({ templates: broken });
+  const dir = tmp();
+  assert.equal(await run([dir, '--starter', starter, '--client', 'react', '--server', 'node', '--no-install'], makeIo().io), 1);
+  assert.deepEqual(readdirSync(dir), []);
+});
+
+test('a failed install keeps the project and says to run npm install in it', async () => {
+  const starter = makeStarter({ templates: standardTemplates() });
+  const dir = join(tmp(), 'my-app');
+  const { io, err } = makeIo();
+  io.install = () => {
+    throw new Error('npm install failed.');
+  };
+  assert.equal(await run([dir, '--starter', starter, '--client', 'react', '--server', 'node'], io), 1);
+  assert.equal(read(dir, 'server/src/main.ts'), 'node server');
+  assert.match(err(), /run `npm install` in it/);
+  assert.match(err(), /my-app/);
+});
+
+test('--starter with --ref, an empty --starter and extra positionals are refused', async () => {
+  const starter = makeStarter({ templates: standardTemplates() });
+  const base = ['--client', 'react', '--server', 'node', '--no-install'];
+  const both = makeIo();
+  assert.equal(await run([join(tmp(), 'a'), '--starter', starter, '--ref', 'main', ...base], both.io), 1);
+  assert.match(both.err(), /--starter.*--ref|--ref.*--starter/);
+  const empty = makeIo();
+  assert.equal(await run([join(tmp(), 'a'), '--starter', '', ...base], empty.io), 1);
+  assert.match(empty.err(), /--starter needs a path/);
+  const extra = makeIo();
+  assert.equal(await run([join(tmp(), 'a'), join(tmp(), 'b'), '--starter', starter, ...base], extra.io), 1);
+  assert.match(extra.err(), /one project directory/);
+});
+
+test('a starter without templates/ is a usage error that names the path', async () => {
+  const starter = tmp();
+  const { io, err } = makeIo();
+  assert.equal(await run([join(tmp(), 'a'), '--starter', starter, '--client', 'react', '--server', 'node'], io), 1);
+  assert.match(err(), new RegExp(`${starter}.*no templates/`));
+  assert.doesNotMatch(err(), /ENOENT/);
+});
+
+test('an existing empty target stays the same directory, so scaffolding into `.` works', async () => {
+  const starter = makeStarter({ templates: standardTemplates() });
+  const dir = tmp();
+  const before = statSync(dir).ino;
+  const { io } = makeIo();
+  assert.equal(await run(['.', '--starter', starter, '--client', 'react', '--server', 'node', '--no-install'], { ...io, cwd: dir }), 0);
+  assert.equal(statSync(dir).ino, before);
+  assert.equal(read(dir, 'server/src/main.ts'), 'node server');
+  assert.equal(readdirSync(dir).some((name) => name.startsWith('.')), false);
 });

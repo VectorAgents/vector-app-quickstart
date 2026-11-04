@@ -27,14 +27,16 @@ jobs:
         client: [react]
         server: [node, nest]
         start: [hello, leads-app]
-    env:
-      GITHUB_PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+    # Fork pull requests get no secrets, so the install cannot reach GitHub Packages.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
       - name: Scaffold ${{ matrix.client }} + ${{ matrix.server }}, start ${{ matrix.start }}
+        env:
+          GITHUB_PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
         run: node packages/create-app/bin/create-app.mjs "$RUNNER_TEMP/app" --client ${{ matrix.client }} --server ${{ matrix.server }} --start ${{ matrix.start }} --starter .
       - run: npm run typecheck
         working-directory: ${{ runner.temp }}/app

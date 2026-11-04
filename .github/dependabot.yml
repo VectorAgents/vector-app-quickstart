@@ -11,8 +11,8 @@ updates:
       - /templates/base
       - /templates/client-react/client
       - /templates/server-node/server
+      - /templates/server-nest/server
       - /templates/shared/shared
-      - /recipes/*
     registries:
       - github-packages
     schedule:
