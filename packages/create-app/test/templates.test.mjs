@@ -92,3 +92,20 @@ test('react + nest scaffolds the Nest server that boots in both run modes', asyn
 
   assert.match(read('server/src/app.module.ts'), /devIssuer: process\.env\.VA_DEV_ISSUER === 'true'/);
 });
+
+for (const server of ['node', 'nest']) {
+  test(`--start leads-app on react + ${server} adds the leads page and its capabilities`, async () => {
+    const dir = join(tmp(), 'hello-app');
+    const { io, err } = makeIo();
+    const code = await run([dir, '--starter', starter, '--client', 'react', '--server', server, '--start', 'leads-app', '--no-install'], io);
+    assert.equal(code, 0, err());
+    const read = (path) => readFileSync(join(dir, path), 'utf8');
+    for (const path of ['client/src/LeadsPage.tsx', 'scripts/definition.test.mjs']) {
+      assert.equal(existsSync(join(dir, path)), true, path);
+    }
+    assert.match(read('client/src/App.tsx'), /<LeadsPage \/>/);
+    assert.match(read('shared/src/index.ts'), /key: 'lead:manage'/);
+    assert.match(read('shared/src/index.ts'), /key: 'icp:manage'/);
+    assert.equal(existsSync(join(dir, 'recipes')), false);
+  });
+}

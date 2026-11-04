@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+import { overlayDrift } from './overlay-drift.mjs';
 
+const root = fileURLToPath(new URL('..', import.meta.url));
+
+// Files an overlay replaces whole. Every other overlay file must equal its template counterpart.
 const MAY_DIFFER = {
   'leads-app': [
     'client/src/App.tsx',
@@ -12,28 +15,8 @@ const MAY_DIFFER = {
   ],
 };
 
-const TEMPLATES = ['base', 'client-react', 'server-node', 'shared'];
-
-const bytes = (path) => readFileSync(new URL(`../${path}`, import.meta.url));
-const templateOf = (file) => TEMPLATES.map((name) => `templates/${name}/${file}`).find((path) => existsSync(new URL(`../${path}`, import.meta.url)));
-const tracked = (dir) =>
-  execFileSync('git', ['ls-files', '-z', '--', dir], { cwd: new URL('..', import.meta.url), encoding: 'utf8' })
-    .split('\0')
-    .filter(Boolean)
-    .map((path) => path.slice(dir.length));
-
-for (const folder of readdirSync(new URL('../recipes', import.meta.url))) {
-  test(`recipes/${folder} matches the templates except the allowed files`, () => {
-    const allowed = MAY_DIFFER[folder] ?? [];
-    const files = tracked(`recipes/${folder}/`).filter((file) => file !== 'package-lock.json');
-    for (const file of allowed) assert.ok(files.includes(file), `stale allowlist entry ${file}`);
-    const problems = files
-      .filter((file) => !allowed.includes(file))
-      .flatMap((file) => {
-        const counterpart = templateOf(file);
-        if (!counterpart) return [`${file} has no template counterpart`];
-        return bytes(counterpart).equals(bytes(`recipes/${folder}/${file}`)) ? [] : [`${file} drifted from ${counterpart}`];
-      });
-    assert.deepEqual(problems, [], `recipes/${folder}`);
+for (const [overlay, allowed] of Object.entries(MAY_DIFFER)) {
+  test(`overlays/${overlay} matches the templates except the allowed files`, () => {
+    assert.deepEqual(overlayDrift(root, overlay, allowed), []);
   });
 }

@@ -10,7 +10,7 @@ Templates and the `@vectoragents/create-app` CLI that scaffold a Vector Spaces a
 | `templates/base/` | Project root files, copied into every project |
 | `templates/shared/` | `shared/`, copied only when a chosen flavour has `needsShared: true` |
 | `templates/<row>-<name>/` | One flavour (`client-react`, `server-node`, `server-nest`) with a `flavour.json` manifest |
-| `recipes/leads-app/` | The start folder of the docs recipes |
+| `overlays/<name>/` | A start applied over the chosen pair: whole-file replacements, chosen with `--start <name>` |
 
 A template directory mirrors the project layout. The CLI copies it into the project root, except `flavour.json`.
 
@@ -45,6 +45,6 @@ With a terminal, the CLI prompts for the project directory and for each missing 
 
 `npm run typecheck` checks all workspaces. `npm test` runs the project's tests.
 
-## Recipe start folders
+## Overlays
 
-`recipes/leads-app/` is a copy of the generated `react` + `node` project with an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. `scripts/recipes.test.mjs` fails when it differs from the templates outside its allowed files.
+`overlays/leads-app/` replaces four files of the generated project: `client/src/App.tsx`, `client/src/LeadsPage.tsx`, `shared/src/index.ts` and `scripts/definition.test.mjs`. It adds an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. The server is the hello server in every start. `scripts/recipes.test.mjs` fails when an overlay file outside its allowed set differs from its template counterpart.
