@@ -2,6 +2,14 @@
   "name": "@vectoragents/create-app",
   "version": "0.1.0",
   "description": "Scaffolds a Vector Spaces app from the starter templates.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VectorAgents/vector-app-quickstart.git",
+    "directory": "packages/create-app"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "type": "module",
   "bin": "./bin/create-app.mjs",
   "files": ["bin", "src"],
