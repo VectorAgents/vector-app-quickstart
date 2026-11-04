@@ -1,0 +1,12 @@
+{
+  "name": "@vectoragents/create-app",
+  "version": "0.1.0",
+  "description": "Scaffolds a Vector Spaces app from the starter templates.",
+  "type": "module",
+  "bin": "./bin/create-app.mjs",
+  "files": ["bin", "src"],
+  "engines": { "node": ">=20.19" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

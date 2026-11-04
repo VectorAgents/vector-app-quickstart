@@ -9,14 +9,42 @@ permissions:
   contents: read
 
 jobs:
-  typecheck:
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: npm test
+        working-directory: packages/create-app
+      - run: node --test scripts/*.test.mjs
+
+  pair:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [., recipes/leads-app]
+        include:
+          - { client: react, server: node }
+    env:
+      GITHUB_PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Scaffold ${{ matrix.client }} + ${{ matrix.server }}
+        run: node packages/create-app/bin/create-app.mjs "$RUNNER_TEMP/app" --client ${{ matrix.client }} --server ${{ matrix.server }} --starter .
+      - run: npm run typecheck
+        working-directory: ${{ runner.temp }}/app
+      - run: npm test
+        working-directory: ${{ runner.temp }}/app
+
+  recipes:
+    runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ matrix.project }}
+        working-directory: recipes/leads-app
     env:
       GITHUB_PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
     steps:
