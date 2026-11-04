@@ -9,7 +9,7 @@ Templates and the `@vectoragents/create-app` CLI that scaffold a Vector Spaces a
 | `packages/create-app/` | The CLI |
 | `templates/base/` | Project root files, copied into every project |
 | `templates/shared/` | `shared/`, copied only when a chosen flavour has `needsShared: true` |
-| `templates/<row>-<name>/` | One flavour (`client-react`, `server-node`) with a `flavour.json` manifest |
+| `templates/<row>-<name>/` | One flavour (`client-react`, `server-node`, `server-nest`) with a `flavour.json` manifest |
 | `recipes/leads-app/` | The start folder of the docs recipes |
 
 A template directory mirrors the project layout. The CLI copies it into the project root, except `flavour.json`.

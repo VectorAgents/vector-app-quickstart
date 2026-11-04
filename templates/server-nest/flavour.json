@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "row": "server",
+  "label": "Nest.js",
+  "dev": "nodemon --watch src --ext ts --exec \"node --import @swc-node/register/esm-register\" src/main.ts",
+  "needsShared": true
+}

@@ -17,7 +17,7 @@ test('the starter root holds no runnable app', () => {
 
 test('each client and server flavour has a manifest, and each row has exactly one default', () => {
   const flavours = loadFlavours(starter);
-  assert.deepEqual(flavours.map((f) => `${f.row}:${f.name}`).sort(), ['client:react', 'server:node']);
+  assert.deepEqual(flavours.map((f) => `${f.row}:${f.name}`).sort(), ['client:react', 'server:nest', 'server:node']);
   for (const row of ['client', 'server']) {
     assert.equal(flavours.filter((f) => f.row === row && f.default === true).length, 1, row);
   }
@@ -54,4 +54,41 @@ test('react + node scaffolds client, server and shared, with the root project fi
     assert.equal(existsSync(join(dir, path)), true, path);
   }
   assert.deepEqual(readdirSync(dir).filter((f) => f.includes('flavour')), []);
+});
+
+test('react + nest scaffolds the Nest server that boots in both run modes', async () => {
+  const dir = join(tmp(), 'hello-app');
+  const { io, err } = makeIo();
+  const code = await run([dir, '--starter', starter, '--client', 'react', '--server', 'nest', '--no-install'], io);
+  assert.equal(code, 0, err());
+  const read = (path) => readFileSync(join(dir, path), 'utf8');
+  for (const path of [
+    'server/src/main.ts',
+    'server/src/app.module.ts',
+    'server/src/manifests.ts',
+    'server/src/credential-store.ts',
+    'server/src/hello.controller.ts',
+    'server/agent-catalog.json',
+    'shared/src/index.ts',
+    'scripts/agent-catalog.test.mjs',
+  ]) {
+    assert.equal(existsSync(join(dir, path)), true, path);
+  }
+  assert.equal(existsSync(join(dir, 'server/src/dev-routes.ts')), false);
+
+  const tsconfig = JSON.parse(read('server/tsconfig.json'));
+  assert.equal(tsconfig.compilerOptions.experimentalDecorators, true);
+  assert.equal(tsconfig.compilerOptions.emitDecoratorMetadata, true);
+  for (const swcrc of ['.swcrc', 'server/.swcrc']) assert.equal(existsSync(join(dir, swcrc)), false, swcrc);
+
+  const pkg = JSON.parse(read('server/package.json'));
+  assert.equal(pkg.scripts.dev.startsWith('nodemon '), true);
+  for (const name of ['@nestjs/common', '@nestjs/core', '@nestjs/platform-express', 'reflect-metadata', 'rxjs']) {
+    assert.equal(typeof pkg.dependencies[name], 'string', name);
+  }
+  for (const name of ['@swc-node/register', '@swc/core', 'nodemon']) {
+    assert.equal(typeof pkg.devDependencies[name], 'string', name);
+  }
+
+  assert.match(read('server/src/app.module.ts'), /devIssuer: process\.env\.VA_DEV_ISSUER === 'true'/);
 });

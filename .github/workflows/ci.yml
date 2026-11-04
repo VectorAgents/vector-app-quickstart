@@ -26,6 +26,7 @@ jobs:
       matrix:
         include:
           - { client: react, server: node }
+          - { client: react, server: nest }
     env:
       GITHUB_PACKAGES_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
     steps:
@@ -39,6 +40,8 @@ jobs:
         working-directory: ${{ runner.temp }}/app
       - run: npm test
         working-directory: ${{ runner.temp }}/app
+      - name: Boot the server in dev and dev:space
+        run: node scripts/boot-check.mjs "$RUNNER_TEMP/app" ${{ matrix.server }}
 
   recipes:
     runs-on: ubuntu-latest
