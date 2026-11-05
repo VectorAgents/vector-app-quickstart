@@ -50,7 +50,7 @@ function readManifest(file) {
       `${file} uses manifest schemaVersion ${manifest.schemaVersion}; this CLI reads ${SCHEMA_VERSION}. Run \`npm create @vectoragents/app@latest\`.`,
     );
   }
-  for (const [key, type] of [['row', 'string'], ['label', 'string'], ['dev', 'string'], ['needsShared', 'boolean']]) {
+  for (const [key, type] of [['row', 'string'], ['label', 'string'], ['needsShared', 'boolean']]) {
     if (typeof manifest[key] !== type) throw new Error(`${file}: "${key}" must be a ${type}.`);
   }
   return manifest;

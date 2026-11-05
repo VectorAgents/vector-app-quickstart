@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "row": "client",
   "label": "React",
-  "dev": "vite",
   "needsShared": true,
   "default": true
 }

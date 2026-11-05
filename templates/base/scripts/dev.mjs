@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { presetEnv } from './env-preset.mjs';
 
 const mode = process.argv[2];
-// tsx watch and vite read the environment once at start, so it is fixed here.
+// The server runner (tsx watch or nodemon) and vite read the environment once at start, so it is fixed here.
 const env = presetEnv(mode, process.env);
 
 const children = ['server', 'client'].map((name) =>

@@ -24,13 +24,6 @@ test('each client and server flavour has a manifest, and each row has exactly on
   for (const flavour of flavours) assert.equal(flavour.needsShared, true);
 });
 
-test('each manifest dev command matches the dev script of its package', () => {
-  for (const flavour of loadFlavours(starter)) {
-    const pkg = JSON.parse(readFileSync(join(flavour.dir, flavour.row, 'package.json'), 'utf8'));
-    assert.equal(pkg.scripts.dev, flavour.dev, flavour.name);
-  }
-});
-
 test('react + node scaffolds client, server and shared, with the root project files', async () => {
   const dir = join(tmp(), 'hello-app');
   const { io, err } = makeIo();

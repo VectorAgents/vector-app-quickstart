@@ -1,6 +1,5 @@
 // Usage: node scripts/boot-check.mjs <project-dir> <server>
-// Boots the generated project in `dev` (harness) and `dev:space`, sends one request to each server, and stops it.
-// On Nest it adds a canary route with type-only constructor injection and requests it too.
+// On Nest, a canary route with type-only constructor injection fails when the runner emits no decorator metadata.
 import { spawn } from 'node:child_process';
 import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -67,9 +66,7 @@ async function bootAndRequest(project, script, requests) {
   } finally {
     try {
       process.kill(-child.pid, 'SIGTERM');
-    } catch {
-      // The group already exited.
-    }
+    } catch {}
     if (!(await waitFor(async () => !(await reachable()), 15_000))) throw new Error(`${script}: the server did not stop`);
   }
 }

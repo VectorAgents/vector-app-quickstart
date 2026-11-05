@@ -56,7 +56,7 @@ test('CI scopes the packages token to the scaffold step and skips the pair job o
   assert.equal(pairJob.match(/GITHUB_PACKAGES_TOKEN/g).length, 1);
 });
 
-test('dependabot watches every template package directory and no recipes', () => {
+test('dependabot watches every template package directory', () => {
   const dependabot = readFileSync(`${root}/.github/dependabot.yml`, 'utf8');
   const listed = [...dependabot.matchAll(/^\s+- (\/\S+)$/gm)].map((match) => match[1]);
   const packages = execFileSync('git', ['ls-files', 'templates/**/package.json', 'packages/*/package.json'], { cwd: root, encoding: 'utf8' })

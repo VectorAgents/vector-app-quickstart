@@ -35,7 +35,7 @@ With a terminal, the CLI prompts for the project directory and for each missing 
 
 ## Manifest
 
-`flavour.json` holds `schemaVersion` (1), `row` (`client` or `server`), `label`, `dev` (the dev script of the flavour's package), `needsShared`, and `default: true` on the default flavour of its row. The CLI refuses another `schemaVersion` and tells the reader to run `npm create @vectoragents/app@latest`. A new flavour is a new `templates/<row>-<name>/` directory with a manifest.
+`flavour.json` holds `schemaVersion` (1), `row` (`client` or `server`), `label`, `needsShared`, and `default: true` on the default flavour of its row. The CLI refuses another `schemaVersion` and tells the reader to run `npm create @vectoragents/app@latest`. A new flavour is a new `templates/<row>-<name>/` directory with a manifest.
 
 ## Run the generated project
 
@@ -47,4 +47,4 @@ With a terminal, the CLI prompts for the project directory and for each missing 
 
 ## Overlays
 
-`overlays/leads-app/` replaces four files of the generated project: `client/src/App.tsx`, `client/src/LeadsPage.tsx`, `shared/src/index.ts` and `scripts/definition.test.mjs`. It adds an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. The server is the hello server in every start. `scripts/recipes.test.mjs` fails when an overlay file outside its allowed set differs from its template counterpart.
+`overlays/leads-app/` replaces four files of the generated project: `client/src/App.tsx`, `client/src/LeadsPage.tsx`, `shared/src/index.ts` and `scripts/definition.test.mjs`. It adds an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. The server is the hello server in every start. `scripts/overlays.test.mjs` fails when an overlay file outside its allowed set differs from its template counterpart.

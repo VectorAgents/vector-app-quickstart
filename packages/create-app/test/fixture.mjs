@@ -16,7 +16,6 @@ export const manifest = (extra) => ({
   schemaVersion: 1,
   row: 'client',
   label: 'Label',
-  dev: 'dev-command',
   needsShared: true,
   ...extra,
 });

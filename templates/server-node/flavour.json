@@ -2,7 +2,6 @@
   "schemaVersion": 1,
   "row": "server",
   "label": "Node.js + TypeScript",
-  "dev": "tsx watch src/main.ts",
   "needsShared": true,
   "default": true
 }
