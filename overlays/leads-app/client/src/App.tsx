@@ -1,4 +1,4 @@
-import { loadAppClientConfig } from '@vectoragents/vs-apps/client';
+import { loadAppClientConfig } from '@vectoragents/vs-apps/browser';
 import { AppProvider, BootGate } from '@vectoragents/vs-apps/react';
 import { HelloPage } from './HelloPage';
 import { LeadsPage } from './LeadsPage';

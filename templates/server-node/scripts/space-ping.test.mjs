@@ -74,8 +74,8 @@ test('with SPACE_API_URL set, boot pings Space once and client-config returns sp
   }
 });
 
-test('with SPACE_API_URL unset, boot succeeds and client-config omits spaceApiUrl', async () => {
-  const { child, config } = await bootStarter({});
+test('in harness mode, boot succeeds and client-config omits spaceApiUrl', async () => {
+  const { child, config } = await bootStarter({ VA_DEV_ISSUER: 'true' });
   try {
     assert.equal('spaceApiUrl' in config, false);
   } finally {

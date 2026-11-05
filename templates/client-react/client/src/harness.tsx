@@ -1,4 +1,4 @@
-import { VectorAppsHarness } from '@vectoragents/vs-apps/harness';
+import { VectorAppsHarness } from '@vectoragents/vs-apps/react/harness';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
