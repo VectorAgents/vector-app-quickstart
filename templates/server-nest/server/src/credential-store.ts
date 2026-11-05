@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { AppCredentialStore } from '@vectoragents/vs-apps/nest';
+import type { AppCredentialStore } from '@vectoragents/vs-apps/server';
 
 /** Keeps secrets in memory and loses them on restart. Implement AppCredentialStore over real storage before production. */
 @Injectable()

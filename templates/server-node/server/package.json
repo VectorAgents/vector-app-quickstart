@@ -10,8 +10,9 @@
   "dependencies": {
     "@hello-app/shared": "*",
     "@types/node": "^26.6.5",
-    "@vectoragents/vs-apps": "0.2.4",
+    "@vectoragents/vs-apps": "0.4.0",
     "jose": "^5.10.0",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "zod": "^3.25.76"
   }
 }
