@@ -7,8 +7,12 @@ registries:
 updates:
   - package-ecosystem: npm
     directories:
-      - /
-      - /recipes/*
+      - /packages/create-app
+      - /templates/base
+      - /templates/client-react/client
+      - /templates/server-node/server
+      - /templates/server-nest/server
+      - /templates/shared/shared
     registries:
       - github-packages
     schedule:

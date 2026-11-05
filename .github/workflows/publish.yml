@@ -1,0 +1,37 @@
+name: Publish create-app
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          registry-url: https://npm.pkg.github.com
+          scope: '@vectoragents'
+      - name: Check the release tag matches the package version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          version=$(node -p "require('./packages/create-app/package.json').version")
+          if [ "${TAG#v}" != "$version" ]; then
+            echo "Release tag $TAG does not match packages/create-app version $version" >&2
+            exit 1
+          fi
+      - run: npm test
+        working-directory: packages/create-app
+      - run: node --test scripts/*.test.mjs
+      - run: npm publish
+        working-directory: packages/create-app
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

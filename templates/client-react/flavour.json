@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "row": "client",
+  "label": "React",
+  "needsShared": true,
+  "default": true
+}

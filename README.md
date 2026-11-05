@@ -1,24 +1,50 @@
 # vector-app-quickstart
 
-Starter for a Vector Spaces app: a "Hello" app with a React client, a Node server and a shared app definition, built on `@vectoragents/vs-apps`. It includes a local dev harness, so the app runs without a Space.
+Templates and the `@vectoragents/create-app` CLI that scaffold a Vector Spaces app built on `@vectoragents/vs-apps`. The generated app has a client, a server and shared code, plus a local dev harness, so it runs without a Space.
 
-## Install
+## Layout
 
-`@vectoragents/vs-apps` is a restricted package on GitHub Packages. Set `GITHUB_PACKAGES_TOKEN` to a personal access token with the `read:packages` scope, then install. `.npmrc` reads the token from the environment.
+| Path | Holds |
+| --- | --- |
+| `packages/create-app/` | The CLI |
+| `templates/base/` | Project root files, copied into every project |
+| `templates/shared/` | `shared/`, copied only when a chosen flavour has `needsShared: true` |
+| `templates/<row>-<name>/` | One flavour (`client-react`, `server-node`, `server-nest`) with a `flavour.json` manifest |
+| `overlays/<name>/` | A start applied over the chosen pair: whole-file replacements, chosen with `--start <name>` |
+
+A template directory mirrors the project layout. The CLI copies it into the project root, except `flavour.json`.
+
+## Scaffold
+
+`@vectoragents/vs-apps` is a restricted package on GitHub Packages. Set `GITHUB_PACKAGES_TOKEN` to a personal access token with the `read:packages` scope first. The generated project's `.npmrc` reads it.
 
 ```sh
 export GITHUB_PACKAGES_TOKEN=<token>
-npm install
+node packages/create-app/bin/create-app.mjs hello-app --client react --server node --starter .
 ```
 
-## Run
+| Flag | Meaning |
+| --- | --- |
+| `--client`, `--server` | A flavour name. Without a terminal, a missing flag is an error that lists the valid flavours |
+| `--start` | `hello` (default) or the name of a folder in `overlays/` |
+| `--starter <path>` | A local starter checkout. Without it, the CLI downloads the templates. Cannot be combined with `--ref` |
+| `--ref <ref>` | The git ref to download. Default `main` |
+| `--no-install` | Skip `npm install` |
+
+With a terminal, the CLI prompts for the project directory and for each missing flavour.
+
+## Manifest
+
+`flavour.json` holds `schemaVersion` (1), `row` (`client` or `server`), `label`, `needsShared`, and `default: true` on the default flavour of its row. The CLI refuses another `schemaVersion` and tells the reader to run `npm create @vectoragents/app@latest`. A new flavour is a new `templates/<row>-<name>/` directory with a manifest.
+
+## Run the generated project
 
 `npm run dev` starts the app in harness mode. It needs no `.env`.
 
 `npm run dev:space` starts the app against a real Space. Copy `.env.example` to `.env` and fill in the values first. This mode turns the harness routes off.
 
-`npm run typecheck` checks all workspaces.
+`npm run typecheck` checks all workspaces. `npm test` runs the project's tests.
 
-## Recipe start folders
+## Overlays
 
-`recipes/leads-app/` is a copy of this starter with an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. The docs recipes start from it. It is its own project: run `npm install`, `npm run dev` and `npm run typecheck` inside it. Its SDK pin follows the root pin.
+`overlays/leads-app/` replaces four files of the generated project: `client/src/App.tsx`, `client/src/LeadsPage.tsx`, `shared/src/index.ts` and `scripts/definition.test.mjs`. It adds an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. The server is the hello server in every start. `scripts/overlays.test.mjs` fails when an overlay file outside its allowed set differs from its template counterpart.

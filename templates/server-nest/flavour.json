@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "row": "server",
+  "label": "Nest.js",
+  "needsShared": true
+}

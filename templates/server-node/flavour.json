@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "row": "server",
+  "label": "Node.js + TypeScript",
+  "needsShared": true,
+  "default": true
+}
