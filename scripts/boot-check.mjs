@@ -77,13 +77,15 @@ if (!project || !server) {
   process.exit(2);
 }
 
-const requests = [{ path: '/api/client-config', status: 200 }];
+const devRequests = [{ path: '/api/client-config', status: 200 }];
 if (server === 'nest') {
   addNestCanary(project);
-  requests.push({ path: '/api/canary', status: 200, includes: '"injected":true' });
+  devRequests.push({ path: '/api/canary', status: 200, includes: '"injected":true' });
 }
+// Only dev:space runs with a signing key (the dev script makes one), so only it serves a key set.
+const spaceRequests = [...devRequests, { path: '/api/jwks.json', status: 200, includes: '"kid"' }];
 
 copyFileSync(join(project, '.env.example'), join(project, '.env'));
-await bootAndRequest(project, 'dev', requests);
-await bootAndRequest(project, 'dev:space', requests);
+await bootAndRequest(project, 'dev', devRequests);
+await bootAndRequest(project, 'dev:space', spaceRequests);
 console.log(`${server}: boots in dev and dev:space`);
