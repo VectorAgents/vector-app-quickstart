@@ -1,6 +1,6 @@
 import { defineApp } from '@vectoragents/vs-apps';
 
-export const CAPABILITY = 'hello:view';
+export const PERMISSION = 'hello:view';
 
 export const definition = defineApp({
   key: 'hello-app',
@@ -11,8 +11,8 @@ export const definition = defineApp({
       key: 'home',
       label: 'Home',
       path: '/',
-      capability: CAPABILITY,
+      permission: PERMISSION,
     },
   ],
-  capabilities: [{ key: CAPABILITY, label: 'View hello', effect: 'read' }],
+  permissions: [{ key: PERMISSION, label: 'View hello', effect: 'read' }],
 });

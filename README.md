@@ -47,4 +47,4 @@ With a terminal, the CLI prompts for the project directory and for each missing 
 
 ## Overlays
 
-`overlays/leads-app/` replaces four files of the generated project: `client/src/App.tsx`, `client/src/LeadsPage.tsx`, `shared/src/index.ts` and `scripts/definition.test.mjs`. It adds an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. The server is the hello server in every start. `scripts/overlays.test.mjs` fails when an overlay file outside its allowed set differs from its template counterpart.
+`overlays/leads-app/` replaces four files of the generated project: `client/src/App.tsx`, `client/src/LeadsPage.tsx`, `shared/src/index.ts` and `scripts/definition.test.mjs`. It adds an ungated `leads` page and the permissions `lead:manage` and `icp:manage`. The server is the hello server in every start. `scripts/overlays.test.mjs` fails when an overlay file outside its allowed set differs from its template counterpart.
