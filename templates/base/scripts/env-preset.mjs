@@ -16,7 +16,15 @@ const DEV_KEY_FILE = new URL('../.dev-signing-key.json', import.meta.url);
 
 // A saved key keeps the `kid` and the key set URL stable across runs.
 function devSigningKey(keyFile) {
-  if (existsSync(keyFile)) return readFileSync(keyFile, 'utf8').trim();
+  if (existsSync(keyFile)) {
+    const saved = readFileSync(keyFile, 'utf8').trim();
+    try {
+      JSON.parse(saved);
+      return saved;
+    } catch {
+      // An empty or half-written file is replaced below.
+    }
+  }
   const { privateKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
   const json = JSON.stringify({ ...privateKey.export({ format: 'jwk' }), kid: randomUUID() });
   writeFileSync(keyFile, `${json}\n`, { mode: 0o600 });
@@ -33,6 +41,7 @@ export function presetEnv(mode, base, keyFile = DEV_KEY_FILE) {
   if (mode === 'harness') {
     delete env.SPACE_JWKS_URL;
     delete env.SPACE_API_URL;
+    delete env.APP_SIGNING_KEY;
     return Object.assign(env, HARNESS);
   }
   if (mode === 'space') {

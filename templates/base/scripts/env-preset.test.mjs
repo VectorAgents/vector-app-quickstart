@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -87,8 +87,18 @@ test('space mode keeps a non-empty APP_SIGNING_KEY and writes no key file', () =
   assert.equal(existsSync(keyFile), false);
 });
 
-test('harness mode sets no signing key', () => {
+for (const [label, saved] of [['empty', ''], ['malformed', '{"kty":']]) {
+  test(`space mode replaces a ${label} saved key file with a fresh key`, () => {
+    const keyFile = tempKeyFile();
+    writeFileSync(keyFile, saved);
+    const env = presetEnv('space', spaceEnv, keyFile);
+    assert.equal(JSON.parse(env.APP_SIGNING_KEY).kty, 'EC');
+    assert.equal(readFileSync(keyFile, 'utf8').trim(), env.APP_SIGNING_KEY);
+  });
+}
+
+test('harness mode sets no signing key, even when the base has one', () => {
   const keyFile = tempKeyFile();
-  assert.equal(presetEnv('harness', {}, keyFile).APP_SIGNING_KEY, undefined);
+  assert.equal(presetEnv('harness', { APP_SIGNING_KEY: '{"kid":"inherited"}' }, keyFile).APP_SIGNING_KEY, undefined);
   assert.equal(existsSync(keyFile), false);
 });

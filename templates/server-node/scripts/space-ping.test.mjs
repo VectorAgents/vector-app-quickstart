@@ -93,11 +93,28 @@ test('in harness mode, boot succeeds and client-config omits spaceApiUrl', async
   }
 });
 
-test('without the dev issuer and with an empty APP_SIGNING_KEY, boot exits and names the variable', async () => {
-  const child = spawnStarter(await freePort(), { APP_SIGNING_KEY: '' }, ['ignore', 'ignore', 'pipe']);
+// Boot must fail fast: a child that outlives the timeout fails the test and is killed.
+async function bootFailure(extraEnv) {
+  const child = spawnStarter(await freePort(), extraEnv, ['ignore', 'ignore', 'pipe']);
   let stderr = '';
   child.stderr.on('data', (chunk) => (stderr += chunk));
-  const [code] = await once(child, 'exit');
-  assert.notEqual(code, 0);
-  assert.match(stderr, /APP_SIGNING_KEY/);
-});
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('boot did not exit within 20s')), 20_000);
+  });
+  try {
+    const [code] = await Promise.race([once(child, 'exit'), timeout]);
+    return { code, stderr };
+  } finally {
+    clearTimeout(timer);
+    child.kill();
+  }
+}
+
+for (const [label, value] of [['empty', ''], ['malformed', 'not json']]) {
+  test(`without the dev issuer and with a ${label} APP_SIGNING_KEY, boot exits and names the variable`, async () => {
+    const { code, stderr } = await bootFailure({ APP_SIGNING_KEY: value });
+    assert.notEqual(code, 0);
+    assert.match(stderr, /APP_SIGNING_KEY/);
+  });
+}
