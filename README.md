@@ -41,7 +41,15 @@ With a terminal, the CLI prompts for the project directory and for each missing 
 
 `npm run dev` starts the app in harness mode. It needs no `.env`.
 
-`npm run dev:space` starts the app against a real Space. Copy `.env.example` to `.env` and fill in the values first. This mode turns the harness routes off.
+`npm run dev:space` starts the app against a real Space. Copy `.env.example` to `.env` and fill in the values first. This mode turns the harness routes off. Leave `APP_SIGNING_KEY` empty: the dev script makes a P-256 key on the first run, saves it to `.dev-signing-key.json` (gitignored) and reuses it, so the key set URL stays stable.
+
+## Production
+
+Set `APP_SIGNING_KEY` to the private key as a JWK JSON string, from a secret manager. Never commit it. To rotate, set a new key and restart. This command prints a key:
+
+```sh
+node -e "const{generateKeyPairSync:g,randomUUID:u}=require('node:crypto');console.log(JSON.stringify({...g('ec',{namedCurve:'P-256'}).privateKey.export({format:'jwk'}),kid:u()}))"
+```
 
 `npm run typecheck` checks all workspaces. `npm test` runs the project's tests.
 
