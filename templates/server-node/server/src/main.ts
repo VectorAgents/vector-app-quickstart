@@ -1,8 +1,8 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { Readable } from 'node:stream';
-import { CAPABILITY } from '@hello-app/shared';
+import { PERMISSION } from '@hello-app/shared';
 import { AppAuthError } from '@vectoragents/vs-apps/server';
-import { requireCapability } from './auth';
+import { requirePermission } from './auth';
 import { platform } from './platform';
 
 function send(res: ServerResponse, status: number, body: unknown): void {
@@ -33,7 +33,7 @@ createServer(async (req, res) => {
     const handled = await platform.fetch(toFetchRequest(req));
     if (handled) return await sendFetchResponse(res, handled);
     if (pathname !== '/api/hello') return send(res, 404, { error: 'Not found' });
-    const claims = await requireCapability(req, CAPABILITY);
+    const claims = await requirePermission(req, PERMISSION);
     send(res, 200, { sub: claims.sub, spaceId: claims.spaceId });
   } catch (error) {
     if (error instanceof AppAuthError) return send(res, error.status, { error: error.message });

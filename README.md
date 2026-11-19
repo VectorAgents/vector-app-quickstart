@@ -41,10 +41,18 @@ With a terminal, the CLI prompts for the project directory and for each missing 
 
 `npm run dev` starts the app in harness mode. It needs no `.env`.
 
-`npm run dev:space` starts the app against a real Space. Copy `.env.example` to `.env` and fill in the values first. This mode turns the harness routes off.
+`npm run dev:space` starts the app against a real Space. Copy `.env.example` to `.env` and fill in the values first. This mode turns the harness routes off. Leave `APP_SIGNING_KEY` empty: the dev script makes a P-256 key on the first run, saves it to `.dev-signing-key.json` (gitignored) and reuses it, so the key set URL stays stable.
 
 `npm run typecheck` checks all workspaces. `npm test` runs the project's tests.
 
+## Production
+
+Set `APP_SIGNING_KEY` to the private key as a JWK JSON string, from a secret manager. Never commit it. To rotate, set a new key and restart. This command prints a key:
+
+```sh
+node -e "const{generateKeyPairSync:g,randomUUID:u}=require('node:crypto');console.log(JSON.stringify({...g('ec',{namedCurve:'P-256'}).privateKey.export({format:'jwk'}),kid:u()}))"
+```
+
 ## Overlays
 
-`overlays/leads-app/` replaces four files of the generated project: `client/src/App.tsx`, `client/src/LeadsPage.tsx`, `shared/src/index.ts` and `scripts/definition.test.mjs`. It adds an ungated `leads` page and the capabilities `lead:manage` and `icp:manage`. The server is the hello server in every start. `scripts/overlays.test.mjs` fails when an overlay file outside its allowed set differs from its template counterpart.
+`overlays/leads-app/` replaces four files of the generated project: `client/src/App.tsx`, `client/src/LeadsPage.tsx`, `shared/src/index.ts` and `scripts/definition.test.mjs`. It adds an ungated `leads` page and the permissions `lead:manage` and `icp:manage`. The server is the hello server in every start. `scripts/overlays.test.mjs` fails when an overlay file outside its allowed set differs from its template counterpart.

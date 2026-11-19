@@ -1,3 +1,6 @@
+import { generateKeyPairSync, randomUUID } from 'node:crypto';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+
 const SERVER_PORT = '3101';
 
 const HARNESS = {
@@ -9,19 +12,42 @@ const HARNESS = {
   VA_DEV_ISSUER: 'true',
 };
 
+const DEV_KEY_FILE = new URL('../.dev-signing-key.json', import.meta.url);
+
+// A saved key keeps the `kid` and the key set URL stable across runs.
+function devSigningKey(keyFile) {
+  if (existsSync(keyFile)) {
+    const saved = readFileSync(keyFile, 'utf8').trim();
+    try {
+      JSON.parse(saved);
+      return saved;
+    } catch {
+      // An empty or half-written file is replaced below.
+    }
+  }
+  const { privateKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  const json = JSON.stringify({ ...privateKey.export({ format: 'jwk' }), kid: randomUUID() });
+  writeFileSync(keyFile, `${json}\n`, { mode: 0o600 });
+  return json;
+}
+
 /**
  * Builds the environment for the server and the client.
- * `harness` sets every value itself. `space` keeps the values from `.env` and never enables the dev issuer.
+ * `harness` sets every value itself and no signing key. `space` keeps the values from `.env` and never enables the dev issuer.
+ * `space` also fills `APP_SIGNING_KEY` from `keyFile` when `.env` leaves it unset or empty, making and saving a key on the first run.
  */
-export function presetEnv(mode, base) {
+export function presetEnv(mode, base, keyFile = DEV_KEY_FILE) {
   const env = { ...base };
   if (mode === 'harness') {
     delete env.SPACE_JWKS_URL;
     delete env.SPACE_API_URL;
+    delete env.APP_SIGNING_KEY;
     return Object.assign(env, HARNESS);
   }
   if (mode === 'space') {
     delete env.VA_DEV_ISSUER;
+    // An empty value counts as unset: `--env-file=.env` passes `APP_SIGNING_KEY=` as an empty string.
+    if (!env.APP_SIGNING_KEY?.trim()) env.APP_SIGNING_KEY = devSigningKey(keyFile);
     return env;
   }
   throw new Error(`Unknown mode "${mode}". Use "harness" or "space".`);

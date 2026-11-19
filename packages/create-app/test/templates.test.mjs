@@ -47,6 +47,8 @@ test('react + node scaffolds client, server and shared, with the root project fi
     assert.equal(existsSync(join(dir, path)), true, path);
   }
   assert.deepEqual(readdirSync(dir).filter((f) => f.includes('flavour')), []);
+  assert.match(readFileSync(join(dir, '.gitignore'), 'utf8'), /^\.dev-signing-key\.json$/m);
+  assert.match(readFileSync(join(dir, '.env.example'), 'utf8'), /^APP_SIGNING_KEY=$/m);
 });
 
 test('react + nest scaffolds the Nest server that boots in both run modes', async () => {
@@ -59,7 +61,6 @@ test('react + nest scaffolds the Nest server that boots in both run modes', asyn
     'server/src/main.ts',
     'server/src/app.module.ts',
     'server/src/manifests.ts',
-    'server/src/credential-store.ts',
     'server/src/hello.controller.ts',
     'server/agent-catalog.json',
     'shared/src/index.ts',
@@ -83,11 +84,12 @@ test('react + nest scaffolds the Nest server that boots in both run modes', asyn
     assert.equal(typeof pkg.devDependencies[name], 'string', name);
   }
 
-  assert.match(read('server/src/app.module.ts'), /devIssuer: process\.env\.VA_DEV_ISSUER === 'true'/);
+  assert.match(read('server/src/app.module.ts'), /const devIssuer = process\.env\.VA_DEV_ISSUER === 'true'/);
+  assert.match(read('server/src/app.module.ts'), /process\.env\.APP_SIGNING_KEY/);
 });
 
 for (const server of ['node', 'nest']) {
-  test(`--start leads-app on react + ${server} adds the leads page and its capabilities`, async () => {
+  test(`--start leads-app on react + ${server} adds the leads page and its permissions`, async () => {
     const dir = join(tmp(), 'hello-app');
     const { io, err } = makeIo();
     const code = await run([dir, '--starter', starter, '--client', 'react', '--server', server, '--start', 'leads-app', '--no-install'], io);

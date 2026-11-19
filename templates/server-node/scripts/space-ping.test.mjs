@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { generateKeyPairSync, randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { once } from 'node:events';
@@ -31,9 +32,8 @@ async function startFakeSpace() {
   return { pings, origin: `http://127.0.0.1:${server.address().port}`, close: () => server.close() };
 }
 
-async function bootStarter(extraEnv) {
-  const port = await freePort();
-  const child = spawn(process.execPath, ['--import', 'tsx', 'src/main.ts'], {
+function spawnStarter(port, extraEnv, stdio) {
+  return spawn(process.execPath, ['--import', 'tsx', 'src/main.ts'], {
     cwd: serverDir,
     env: {
       PATH: process.env.PATH,
@@ -43,8 +43,18 @@ async function bootStarter(extraEnv) {
       SPACE_JWKS_URL: 'http://127.0.0.1:1/jwks.json',
       ...extraEnv,
     },
-    stdio: 'ignore',
+    stdio,
   });
+}
+
+function throwawaySigningKey() {
+  const { privateKey } = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  return JSON.stringify({ ...privateKey.export({ format: 'jwk' }), kid: randomUUID() });
+}
+
+async function bootStarter(extraEnv) {
+  const port = await freePort();
+  const child = spawnStarter(port, extraEnv, 'ignore');
   const url = `http://127.0.0.1:${port}/api/client-config`;
   for (let attempt = 0; attempt < 100; attempt++) {
     try {
@@ -60,7 +70,7 @@ async function bootStarter(extraEnv) {
 test('with SPACE_API_URL set, boot pings Space once and client-config returns spaceApiUrl', async () => {
   const space = await startFakeSpace();
   const spaceApiUrl = `${space.origin}/api`;
-  const { child, config } = await bootStarter({ SPACE_API_URL: spaceApiUrl });
+  const { child, config } = await bootStarter({ SPACE_API_URL: spaceApiUrl, APP_SIGNING_KEY: throwawaySigningKey() });
   try {
     for (let attempt = 0; attempt < 50 && space.pings.length === 0; attempt++) await sleep(100);
     assert.equal(config.spaceApiUrl, spaceApiUrl);
@@ -82,3 +92,29 @@ test('in harness mode, boot succeeds and client-config omits spaceApiUrl', async
     child.kill();
   }
 });
+
+// Boot must fail fast: a child that outlives the timeout fails the test and is killed.
+async function bootFailure(extraEnv) {
+  const child = spawnStarter(await freePort(), extraEnv, ['ignore', 'ignore', 'pipe']);
+  let stderr = '';
+  child.stderr.on('data', (chunk) => (stderr += chunk));
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('boot did not exit within 20s')), 20_000);
+  });
+  try {
+    const [code] = await Promise.race([once(child, 'exit'), timeout]);
+    return { code, stderr };
+  } finally {
+    clearTimeout(timer);
+    child.kill();
+  }
+}
+
+for (const [label, value] of [['empty', ''], ['malformed', 'not json']]) {
+  test(`without the dev issuer and with a ${label} APP_SIGNING_KEY, boot exits and names the variable`, async () => {
+    const { code, stderr } = await bootFailure({ APP_SIGNING_KEY: value });
+    assert.notEqual(code, 0);
+    assert.match(stderr, /APP_SIGNING_KEY/);
+  });
+}
